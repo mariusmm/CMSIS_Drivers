@@ -9,6 +9,8 @@ This project aims to implement all Drivers declared in CMSIS Drivers (https://gi
 Just commit the entire repository and import the folder into your IDE or environment. 
 In eclipse based IDEs (Simplicity Studio and STM32CubeIDE) a virtual folder can be set to point to the proper repository directory.
 
+Documentation about the API is here: https://arm-software.github.io/CMSIS_5/Driver/html/index.html
+
 ## Modules implemented
 
 * Driver_USART
