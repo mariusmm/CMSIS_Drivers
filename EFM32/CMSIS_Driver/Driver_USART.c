@@ -48,6 +48,7 @@ typedef struct {
     ARM_USART_CAPABILITIES capabilities;        // Capabilities
     /* Specific EFM32 UART properties */
     void *device;
+    USART_InitAsync_TypeDef usart_cfg;
     uint32_t LOCATION;
     EFM32_PIN TxPin;
     EFM32_PIN RxPin;
@@ -83,6 +84,7 @@ static EFM32_USART_RESOURCES USART0_Resources = {
      /* Reserved (must be zero) */
      },
     USART0,
+	USART_INITASYNC_DEFAULT,
     USART_ROUTE_LOCATION_LOC1,  /* Location */
     {gpioPortD, 0},
     {gpioPortD, 1},
@@ -116,6 +118,7 @@ static EFM32_USART_RESOURCES USART1_Resources = {
      /* Reserved (must be zero) */
      },
     USART1,
+	USART_INITASYNC_DEFAULT,
     USART_ROUTE_LOCATION_LOC1,  /* Location */
     {gpioPortD, 0},
     {gpioPortD, 1},
@@ -149,6 +152,7 @@ static EFM32_USART_RESOURCES LEUART0_Resources = {
      /* Reserved (must be zero) */
      },
     LEUART0,
+	LEUART_INIT_DEFAULT,
     LEUART_ROUTE_LOCATION_LOC0, /* Location */
     {gpioPortD, 4},             // Tx
     {gpioPortD, 5},             // Rx
@@ -163,6 +167,9 @@ static int32_t EFM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event,
     CMU_ClockEnable(cmuClock_GPIO, true);
     GPIO_PinModeSet(usart->TxPin.port, usart->TxPin.pin, gpioModePushPull, 1);  /* TX Pin */
     GPIO_PinModeSet(usart->RxPin.port, usart->RxPin.pin, gpioModeInputPull, 1); /* RX Pin */
+
+    /* Baudrate set to CMSIS default value */
+    usart->usart_cfg.baudrate = 9600;
 
     if (usart->device == USART0) {
         CMU_ClockEnable(cmuClock_USART0, true);
@@ -391,13 +398,13 @@ static uint32_t EFM32_LEUART_GetRxCount(EFM32_USART_RESOURCES const *usart)
 }
 
 static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg,
-                                   EFM32_USART_RESOURCES const *usart)
+                                   EFM32_USART_RESOURCES *usart)
 {
-    USART_InitAsync_TypeDef usart_cfg = USART_INITASYNC_DEFAULT;
+
 
     switch (control & ARM_USART_CONTROL_Msk) {
     case ARM_USART_MODE_ASYNCHRONOUS:
-        usart_cfg.baudrate = arg;
+        usart->usart_cfg.baudrate = arg;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -409,10 +416,10 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg,
     case ARM_USART_DATA_BITS_7:
         return ARM_DRIVER_ERROR_PARAMETER;
     case ARM_USART_DATA_BITS_8:
-        usart_cfg.databits = usartDatabits8;
+    	usart->usart_cfg.databits = usartDatabits8;
         break;
     case ARM_USART_DATA_BITS_9:
-        usart_cfg.databits = usartDatabits9;
+    	usart->usart_cfg.databits = usartDatabits9;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -420,13 +427,13 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg,
 
     switch (control & ARM_USART_PARITY_Msk) {
     case ARM_USART_PARITY_NONE:
-        usart_cfg.parity = usartNoParity;
+    	usart->usart_cfg.parity = usartNoParity;
         break;
     case ARM_USART_PARITY_ODD:
-        usart_cfg.parity = usartOddParity;
+    	usart->usart_cfg.parity = usartOddParity;
         break;
     case ARM_USART_PARITY_EVEN:
-        usart_cfg.parity = usartEvenParity;
+    	usart->usart_cfg.parity = usartEvenParity;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -434,16 +441,16 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg,
 
     switch (control & ARM_USART_STOP_BITS_Msk) {
     case ARM_USART_STOP_BITS_0_5:
-        usart_cfg.stopbits = usartStopbits0p5;
+    	usart->usart_cfg.stopbits = usartStopbits0p5;
         break;
     case ARM_USART_STOP_BITS_1:
-        usart_cfg.stopbits = usartStopbits1;
+    	usart->usart_cfg.stopbits = usartStopbits1;
         break;
     case ARM_USART_STOP_BITS_1_5:
-        usart_cfg.stopbits = usartStopbits1p5;
+    	usart->usart_cfg.stopbits = usartStopbits1p5;
         break;
     case ARM_USART_STOP_BITS_2:
-        usart_cfg.stopbits = usartStopbits2;
+    	usart->usart_cfg.stopbits = usartStopbits2;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -452,28 +459,28 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg,
     switch (control & ARM_USART_FLOW_CONTROL_Msk) {
     case ARM_USART_FLOW_CONTROL_NONE:
 #if (_SILICON_LABS_32B_SERIES > 0)
-        usart_cfg.hwFlowControl = usartHwFlowControlNone;
+    	usart->usart_cfg.hwFlowControl = usartHwFlowControlNone;
         break;
 #else
         break;
 #endif
     case ARM_USART_FLOW_CONTROL_RTS:
 #if (_SILICON_LABS_32B_SERIES > 0)
-        usart_cfg.hwFlowControl = usartHwFlowControlRts;
+    	usart->usart_cfg.hwFlowControl = usartHwFlowControlRts;
         break;
 #else
         return ARM_DRIVER_ERROR_PARAMETER;
 #endif
     case ARM_USART_FLOW_CONTROL_CTS:
 #if (_SILICON_LABS_32B_SERIES > 0)
-        usart_cfg.hwFlowControl = usartHwFlowControlCts;
+    	usart->usart_cfg.hwFlowControl = usartHwFlowControlCts;
         break;
 #else
         return ARM_DRIVER_ERROR_PARAMETER;
 #endif
     case ARM_USART_FLOW_CONTROL_RTS_CTS:
 #if (_SILICON_LABS_32B_SERIES > 0)
-        usart_cfg.hwFlowControl = usartHwFlowControlCtsAndRts;
+    	usart->usart_cfg.hwFlowControl = usartHwFlowControlCtsAndRts;
         break;
 #else
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -482,7 +489,7 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg,
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    USART_InitAsync(usart->device, &usart_cfg);
+    USART_InitAsync(usart->device, &usart->usart_cfg);
 
     ((USART_TypeDef *) usart->device)->ROUTE =
         USART_ROUTE_RXPEN | USART_ROUTE_TXPEN | usart->LOCATION;
