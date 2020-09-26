@@ -23,12 +23,12 @@
  * EXP-14,
  *
  * - Implemented non-blocking mode for Send, Receive functions
+ * - Implemented ARM_USART_GetModemStatus function
  *
  * TODO: Implement transfer function
  * TODO: Implement the use of DMA for Send, Receive and Transfer functions.
  * TODO: Implement ARM_USART_GetStatus function.
  * TODO: Implement ARM_USART_SetModemControl function
- * TODO: Implement ARM_USART_GetModemStatus function
  *
  */
 
@@ -72,6 +72,7 @@ typedef struct {
 	EFM32_PIN RxPin;
 	USART_TRANSFER_INFO xfer;
 	ARM_USART_STATUS status;
+	ARM_USART_MODEM_STATUS modem_status;
 	ARM_USART_SignalEvent_t cb_event;
 } EFM32_USART_RESOURCES;
 
@@ -112,6 +113,7 @@ static EFM32_USART_RESOURCES USART0_Resources = {
 	 0, 0, 0, 0,
 	 },
 	{0},
+	{0},
 	NULL,
 };
 
@@ -151,6 +153,7 @@ static EFM32_USART_RESOURCES USART1_Resources = {
 	 0, 0, 0, 0,
 	 },
 	{0},
+	{0},
 	NULL,
 };
 
@@ -189,6 +192,7 @@ static EFM32_USART_RESOURCES LEUART0_Resources = {
 	 NULL, NULL,
 	 0, 0, 0, 0,
 	 },
+	{0},
 	{0},
 	NULL,
 };
@@ -758,22 +762,14 @@ static int32_t EFM32_LEUART_Control(uint32_t control, uint32_t arg, EFM32_USART_
 	return ARM_DRIVER_OK;
 }
 
-static ARM_USART_STATUS EFM32_USART_GetStatus(EFM32_USART_RESOURCES const
-					      *usart)
+static ARM_USART_STATUS EFM32_USART_GetStatus(EFM32_USART_RESOURCES const *usart)
 {
-	ARM_USART_STATUS status = {
-		0
-	};
-	return status;
+	return usart->status;
 }
 
-static ARM_USART_STATUS EFM32_LEUART_GetStatus(EFM32_USART_RESOURCES const
-					       *usart)
+static ARM_USART_STATUS EFM32_LEUART_GetStatus(EFM32_USART_RESOURCES const *usart)
 {
-	ARM_USART_STATUS status = {
-		0
-	};
-	return status;
+	return usart->status;
 }
 
 static int32_t EFM32_USART_SetModemControl(ARM_USART_MODEM_CONTROL control, EFM32_USART_RESOURCES const *usart)
@@ -788,18 +784,12 @@ static int32_t EFM32_LEUART_SetModemControl(ARM_USART_MODEM_CONTROL control, EFM
 
 static ARM_USART_MODEM_STATUS EFM32_USART_GetModemStatus(EFM32_USART_RESOURCES const *usart)
 {
-	ARM_USART_MODEM_STATUS status = {
-		0
-	};
-	return status;
+	return usart->modem_status;
 }
 
 static ARM_USART_MODEM_STATUS EFM32_LEUART_GetModemStatus(EFM32_USART_RESOURCES const *usart)
 {
-	ARM_USART_MODEM_STATUS status = {
-		0
-	};
-	return status;
+	return usart->modem_status;
 }
 
 void USART_TX_IRQHandler(EFM32_USART_RESOURCES * usart)
