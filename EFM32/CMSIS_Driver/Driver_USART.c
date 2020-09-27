@@ -77,6 +77,7 @@ typedef struct {
 } EFM32_USART_RESOURCES;
 
 /* Driver Capabilities */
+#ifdef USART0
 static EFM32_USART_RESOURCES USART0_Resources = {
     {
      1,                         /* supports UART (Asynchronous) mode */
@@ -116,7 +117,9 @@ static EFM32_USART_RESOURCES USART0_Resources = {
     {0},
     NULL,
 };
+#endif
 
+#ifdef USART1
 static EFM32_USART_RESOURCES USART1_Resources = {
     {
      1,                         /* supports UART (Asynchronous) mode */
@@ -156,7 +159,91 @@ static EFM32_USART_RESOURCES USART1_Resources = {
     {0},
     NULL,
 };
+#endif
+#ifdef USART2
+static EFM32_USART_RESOURCES USART2_Resources = {
+    {
+     1,                         /* supports UART (Asynchronous) mode */
+     0,                         /* supports Synchronous Master mode */
+     0,                         /* supports Synchronous Slave mode */
+     0,                         /* supports UART Single-wire mode */
+     0,                         /* supports UART IrDA mode */
+     0,                         /* supports UART Smart Card mode */
+     0,                         /* Smart Card Clock generator available */
+     0,                         /* RTS Flow Control available */
+     0,                         /* CTS Flow Control available */
+     0,                         /* Transmit completed event: \ref ARM_USART_EVENT_TX_COMPLETE */
+     0,                         /* Signal receive character timeout event: \ref ARM_USART_EVENT_RX_TIMEOUT */
+     0,                         /* RTS Line: 0=not available, 1=available */
+     0,                         /* CTS Line: 0=not available, 1=available */
+     0,                         /* DTR Line: 0=not available, 1=available */
+     0,                         /* DSR Line: 0=not available, 1=available */
+     0,                         /* DCD Line: 0=not available, 1=available */
+     0,                         /* RI Line: 0=not available, 1=available */
+     0,                         /* Signal CTS change event: \ref ARM_USART_EVENT_CTS */
+     0,                         /* Signal DSR change event: \ref ARM_USART_EVENT_DSR */
+     0,                         /* Signal DCD change event: \ref ARM_USART_EVENT_DCD */
+     0,                         /* Signal RI change event: \ref ARM_USART_EVENT_RI */
+     0
+     /* Reserved (must be zero) */
+     },
+    USART2,
+    USART_INITASYNC_DEFAULT,
+    USART_ROUTE_LOCATION_LOC1,  /* Location */
+    {gpioPortD, 0},
+    {gpioPortD, 1},
+    {
+     NULL, NULL,
+     0, 0, 0, 0,
+     },
+    {0},
+    {0},
+    NULL,
+};
+#endif
+#ifdef USART3
+static EFM32_USART_RESOURCES USART3_Resources = {
+    {
+     1,                         /* supports UART (Asynchronous) mode */
+     0,                         /* supports Synchronous Master mode */
+     0,                         /* supports Synchronous Slave mode */
+     0,                         /* supports UART Single-wire mode */
+     0,                         /* supports UART IrDA mode */
+     0,                         /* supports UART Smart Card mode */
+     0,                         /* Smart Card Clock generator available */
+     0,                         /* RTS Flow Control available */
+     0,                         /* CTS Flow Control available */
+     0,                         /* Transmit completed event: \ref ARM_USART_EVENT_TX_COMPLETE */
+     0,                         /* Signal receive character timeout event: \ref ARM_USART_EVENT_RX_TIMEOUT */
+     0,                         /* RTS Line: 0=not available, 1=available */
+     0,                         /* CTS Line: 0=not available, 1=available */
+     0,                         /* DTR Line: 0=not available, 1=available */
+     0,                         /* DSR Line: 0=not available, 1=available */
+     0,                         /* DCD Line: 0=not available, 1=available */
+     0,                         /* RI Line: 0=not available, 1=available */
+     0,                         /* Signal CTS change event: \ref ARM_USART_EVENT_CTS */
+     0,                         /* Signal DSR change event: \ref ARM_USART_EVENT_DSR */
+     0,                         /* Signal DCD change event: \ref ARM_USART_EVENT_DCD */
+     0,                         /* Signal RI change event: \ref ARM_USART_EVENT_RI */
+     0
+     /* Reserved (must be zero) */
+     },
+    USART3,
+    USART_INITASYNC_DEFAULT,
+    USART_ROUTE_LOCATION_LOC1,  /* Location */
+    {gpioPortD, 0},
+    {gpioPortD, 1},
+    {
+     NULL, NULL,
+     0, 0, 0, 0,
+     },
+    {0},
+    {0},
+    NULL,
+};
+#endif
 
+#ifdef LEUART0
 static EFM32_USART_RESOURCES LEUART0_Resources = {
     {
      1,                         /* supports UART (Asynchronous) mode */
@@ -196,6 +283,48 @@ static EFM32_USART_RESOURCES LEUART0_Resources = {
     {0},
     NULL,
 };
+#endif
+#ifdef LEUART1
+static EFM32_USART_RESOURCES LEUART1_Resources = {
+    {
+     1,                         /* supports UART (Asynchronous) mode */
+     0,                         /* supports Synchronous Master mode */
+     0,                         /* supports Synchronous Slave mode */
+     0,                         /* supports UART Single-wire mode */
+     0,                         /* supports UART IrDA mode */
+     0,                         /* supports UART Smart Card mode */
+     0,                         /* Smart Card Clock generator available */
+     0,                         /* RTS Flow Control available */
+     0,                         /* CTS Flow Control available */
+     0,                         /* Transmit completed event: \ref ARM_USART_EVENT_TX_COMPLETE */
+     0,                         /* Signal receive character timeout event: \ref ARM_USART_EVENT_RX_TIMEOUT */
+     0,                         /* RTS Line: 0=not available, 1=available */
+     0,                         /* CTS Line: 0=not available, 1=available */
+     0,                         /* DTR Line: 0=not available, 1=available */
+     0,                         /* DSR Line: 0=not available, 1=available */
+     0,                         /* DCD Line: 0=not available, 1=available */
+     0,                         /* RI Line: 0=not available, 1=available */
+     0,                         /* Signal CTS change event: \ref ARM_USART_EVENT_CTS */
+     0,                         /* Signal DSR change event: \ref ARM_USART_EVENT_DSR */
+     0,                         /* Signal DCD change event: \ref ARM_USART_EVENT_DCD */
+     0,                         /* Signal RI change event: \ref ARM_USART_EVENT_RI */
+     0
+     /* Reserved (must be zero) */
+     },
+    LEUART1,
+    LEUART_INIT_DEFAULT,
+    LEUART_ROUTE_LOCATION_LOC0, /* Location */
+    {gpioPortD, 4},             // Tx
+    {gpioPortD, 5},             // Rx
+    {
+     NULL, NULL,
+     0, 0, 0, 0,
+     },
+    {0},
+    {0},
+    NULL,
+};
+#endif
 
 // EFM32 functions
 static int32_t EFM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event, EFM32_USART_RESOURCES * usart)
@@ -207,6 +336,7 @@ static int32_t EFM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event, EFM32_US
     /* Baudrate set to CMSIS default value */
     usart->usart_cfg.baudrate = 9600;
 
+#ifdef USART0
     if (usart->device == USART0) {
         CMU_ClockEnable(cmuClock_USART0, true);
 
@@ -214,7 +344,10 @@ static int32_t EFM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event, EFM32_US
 
         NVIC_ClearPendingIRQ(USART0_TX_IRQn);
         NVIC_EnableIRQ(USART0_TX_IRQn);
-    } else if (usart->device == USART1) {
+    }
+#endif
+#ifdef USART1
+    if (usart->device == USART1) {
         CMU_ClockEnable(cmuClock_USART1, true);
 
         USART_IntEnable(USART1, USART_IEN_TXC);
@@ -222,6 +355,27 @@ static int32_t EFM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event, EFM32_US
         NVIC_ClearPendingIRQ(USART1_TX_IRQn);
         NVIC_EnableIRQ(USART1_TX_IRQn);
     }
+#endif
+#ifdef USART2
+    if (usart->device == USART2) {
+        CMU_ClockEnable(cmuClock_USART2, true);
+
+        USART_IntEnable(USART2, USART_IEN_TXC);
+
+        NVIC_ClearPendingIRQ(USART2_TX_IRQn);
+        NVIC_EnableIRQ(USART2_TX_IRQn);
+    }
+#endif
+#ifdef USART3
+    if (usart->device == USART3) {
+        CMU_ClockEnable(cmuClock_USART3, true);
+
+        USART_IntEnable(USART3, USART_IEN_TXC);
+
+        NVIC_ClearPendingIRQ(USART3_TX_IRQn);
+        NVIC_EnableIRQ(USART3_TX_IRQn);
+    }
+#endif
 
     usart->xfer.TxCnt = 0;
     usart->xfer.RxCnt = 0;
@@ -270,13 +424,30 @@ static int32_t EFM32_LEUART_Initialize(ARM_USART_SignalEvent_t cb_event, EFM32_U
 
 static int32_t EFM32_USART_Uninitialize(EFM32_USART_RESOURCES * usart)
 {
+#ifdef USART0
     if (usart->device == USART0) {
         CMU_ClockEnable(cmuClock_USART0, false);
         NVIC_DisableIRQ(USART0_TX_IRQn);
-    } else if (usart->device == USART1) {
+    }
+#endif
+#ifdef USART1
+    if (usart->device == USART1) {
         CMU_ClockEnable(cmuClock_USART1, false);
         NVIC_DisableIRQ(USART1_TX_IRQn);
     }
+#endif
+#ifdef USART2
+    if (usart->device == USART2) {
+        CMU_ClockEnable(cmuClock_USART2, false);
+        NVIC_DisableIRQ(USART2_TX_IRQn);
+    }
+#endif
+#ifdef USART3
+    if (usart->device == USART3) {
+        CMU_ClockEnable(cmuClock_USART3, false);
+        NVIC_DisableIRQ(USART3_TX_IRQn);
+    }
+#endif
 
     GPIO_PinModeSet(usart->TxPin.port, usart->TxPin.pin, gpioModeDisabled, 1);  /* TX Pin */
     GPIO_PinModeSet(usart->RxPin.port, usart->RxPin.pin, gpioModeDisabled, 1);  /* RX Pin */
@@ -432,6 +603,11 @@ static int32_t EFM32_USART_Receive(const void *data, uint32_t num, EFM32_USART_R
         NVIC_EnableIRQ(USART2_RX_IRQn);
     }
 #endif
+#ifdef USART3
+    if (usart->device == USART3) {
+        NVIC_EnableIRQ(USART3_RX_IRQn);
+    }
+#endif
 
     return ARM_DRIVER_OK;
 }
@@ -523,6 +699,11 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg, EFM32_USART_R
                 NVIC_EnableIRQ(USART2_TX_IRQn);
             }
 #endif
+#ifdef USART3
+            if (usart->device == USART3) {
+                NVIC_EnableIRQ(USART3_TX_IRQn);
+            }
+#endif
 
             USART_IntEnable(usart->device, USART_IEN_TXC);
         } else {
@@ -546,6 +727,11 @@ static int32_t EFM32_USART_Control(uint32_t control, uint32_t arg, EFM32_USART_R
 #ifdef USART2
             if (usart->device == USART2) {
                 NVIC_EnableIRQ(USART2_RX_IRQn);
+            }
+#endif
+#ifdef USART3
+            if (usart->device == USART3) {
+                NVIC_EnableIRQ(USART3_RX_IRQn);
             }
 #endif
 
@@ -687,6 +873,7 @@ static int32_t EFM32_LEUART_Control(uint32_t control, uint32_t arg, EFM32_USART_
                 NVIC_EnableIRQ(LEUART1_IRQn);
             }
 #endif
+
             LEUART_IntEnable(usart->device, LEUART_IEN_RXDATAV);
         } else {
             LEUART_IntDisable(usart->device, LEUART_IEN_RXDATAV);
@@ -885,12 +1072,12 @@ void LEUART_RX_IRQHandler(EFM32_USART_RESOURCES * usart)
 //
 //   Functions
 //
-
 static ARM_DRIVER_VERSION ARM_GetVersion(void)
 {
     return DriverVersion;
 }
 
+#ifdef USART0
 static ARM_USART_CAPABILITIES USART0_GetCapabilities(void)
 {
     return USART0_Resources.capabilities;
@@ -963,10 +1150,12 @@ void USART0_TX_IRQHandler(void)
 
 void USART0_RX_IRQHandler(void)
 {
-    USART_RX_IRQHandler(&USART1_Resources);
+    USART_RX_IRQHandler(&USART0_Resources);
 }
+#endif
 
 // USART1
+#ifdef USART1
 static ARM_USART_CAPABILITIES USART1_GetCapabilities(void)
 {
     return USART1_Resources.capabilities;
@@ -1041,8 +1230,164 @@ void USART1_RX_IRQHandler(void)
 {
     USART_RX_IRQHandler(&USART1_Resources);
 }
+#endif
+
+#ifdef USART2
+static ARM_USART_CAPABILITIES USART2_GetCapabilities(void)
+{
+    return USART2_Resources.capabilities;
+}
+
+static int32_t USART2_Initialize(ARM_USART_SignalEvent_t cb_event)
+{
+    return EFM32_USART_Initialize(cb_event, &USART2_Resources);
+}
+
+static int32_t USART2_Uninitialize(void)
+{
+    return EFM32_USART_Uninitialize(&USART2_Resources);
+}
+
+static int32_t USART2_PowerControl(ARM_POWER_STATE state)
+{
+    return EFM32_USART_PowerControl(state, &USART2_Resources);
+}
+
+static int32_t USART2_Send(const void *data, uint32_t num)
+{
+    return EFM32_USART_Send(data, num, &USART2_Resources);
+}
+
+static int32_t USART2_Receive(void *data, uint32_t num)
+{
+    return EFM32_USART_Receive(data, num, &USART2_Resources);
+}
+
+static int32_t USART2_Transfer(const void *data_out, void *data_in, uint32_t num)
+{
+    return EFM32_USART_Transfer(data_out, data_in, num, &USART2_Resources);
+}
+
+static uint32_t USART2_GetTxCount(void)
+{
+    return EFM32_USART_GetTxCount(&USART2_Resources);
+}
+
+static uint32_t USART2_GetRxCount(void)
+{
+    return EFM32_USART_GetRxCount(&USART2_Resources);
+}
+
+static int32_t USART2_Control(uint32_t control, uint32_t arg)
+{
+    return EFM32_USART_Control(control, arg, &USART2_Resources);
+}
+
+static ARM_USART_STATUS USART2_GetStatus(void)
+{
+    return EFM32_USART_GetStatus(&USART2_Resources);
+}
+
+static int32_t USART2_SetModemControl(ARM_USART_MODEM_CONTROL control)
+{
+    return EFM32_USART_SetModemControl(control, &USART2_Resources);
+}
+
+static ARM_USART_MODEM_STATUS USART2_GetModemStatus(void)
+{
+    return EFM32_USART_GetModemStatus(&USART2_Resources);
+}
+
+void USART2_TX_IRQHandler(void)
+{
+    USART_TX_IRQHandler(&USART2_Resources);
+}
+
+void USART2_RX_IRQHandler(void)
+{
+    USART_RX_IRQHandler(&USART2_Resources);
+}
+#endif
+
+#ifdef USART3
+static ARM_USART_CAPABILITIES USART3_GetCapabilities(void)
+{
+    return USART3_Resources.capabilities;
+}
+
+static int32_t USART3_Initialize(ARM_USART_SignalEvent_t cb_event)
+{
+    return EFM32_USART_Initialize(cb_event, &USART3_Resources);
+}
+
+static int32_t USART3_Uninitialize(void)
+{
+    return EFM32_USART_Uninitialize(&USART3_Resources);
+}
+
+static int32_t USART3_PowerControl(ARM_POWER_STATE state)
+{
+    return EFM32_USART_PowerControl(state, &USART3_Resources);
+}
+
+static int32_t USART3_Send(const void *data, uint32_t num)
+{
+    return EFM32_USART_Send(data, num, &USART3_Resources);
+}
+
+static int32_t USART3_Receive(void *data, uint32_t num)
+{
+    return EFM32_USART_Receive(data, num, &USART3_Resources);
+}
+
+static int32_t USART3_Transfer(const void *data_out, void *data_in, uint32_t num)
+{
+    return EFM32_USART_Transfer(data_out, data_in, num, &USART3_Resources);
+}
+
+static uint32_t USART3_GetTxCount(void)
+{
+    return EFM32_USART_GetTxCount(&USART3_Resources);
+}
+
+static uint32_t USART3_GetRxCount(void)
+{
+    return EFM32_USART_GetRxCount(&USART3_Resources);
+}
+
+static int32_t USART3_Control(uint32_t control, uint32_t arg)
+{
+    return EFM32_USART_Control(control, arg, &USART3_Resources);
+}
+
+static ARM_USART_STATUS USART3_GetStatus(void)
+{
+    return EFM32_USART_GetStatus(&USART3_Resources);
+}
+
+static int32_t USART3_SetModemControl(ARM_USART_MODEM_CONTROL control)
+{
+    return EFM32_USART_SetModemControl(control, &USART3_Resources);
+}
+
+static ARM_USART_MODEM_STATUS USART3_GetModemStatus(void)
+{
+    return EFM32_USART_GetModemStatus(&USART3_Resources);
+}
+
+void USART3_TX_IRQHandler(void)
+{
+    USART_TX_IRQHandler(&USART3_Resources);
+}
+
+void USART3_RX_IRQHandler(void)
+{
+    USART_RX_IRQHandler(&USART3_Resources);
+}
+#endif
 
 // LEUART0
+#ifdef LEUART0
 static ARM_USART_CAPABILITIES LEUART0_GetCapabilities(void)
 {
     return LEUART0_Resources.capabilities;
@@ -1119,7 +1464,88 @@ void LEUART0_IRQHandler(void)
         LEUART_RX_IRQHandler(&LEUART0_Resources);
     }
 }
+#endif
 
+#ifdef LEUART1
+static ARM_USART_CAPABILITIES LEUART1_GetCapabilities(void)
+{
+    return LEUART1_Resources.capabilities;
+}
+
+static int32_t LEUART1_Initialize(ARM_USART_SignalEvent_t cb_event)
+{
+    return EFM32_LEUART_Initialize(cb_event, &LEUART1_Resources);
+}
+
+static int32_t LEUART1_Uninitialize(void)
+{
+    return EFM32_LEUART_Uninitialize(&LEUART1_Resources);
+}
+
+static int32_t LEUART1_PowerControl(ARM_POWER_STATE state)
+{
+    return EFM32_LEUART_PowerControl(state, &LEUART1_Resources);
+}
+
+static int32_t LEUART1_Send(const void *data, uint32_t num)
+{
+    return EFM32_LEUART_Send(data, num, &LEUART1_Resources);
+}
+
+static int32_t LEUART1_Receive(void *data, uint32_t num)
+{
+    return EFM32_LEUART_Receive(data, num, &LEUART1_Resources);
+}
+
+static int32_t LEUART1_Transfer(const void *data_out, void *data_in, uint32_t num)
+{
+    return EFM32_LEUART_Transfer(data_out, data_in, num, &LEUART1_Resources);
+}
+
+static uint32_t LEUART1_GetTxCount(void)
+{
+    return EFM32_LEUART_GetTxCount(&LEUART1_Resources);
+}
+
+static uint32_t LEUART1_GetRxCount(void)
+{
+    return EFM32_LEUART_GetRxCount(&LEUART1_Resources);
+}
+
+static int32_t LEUART1_Control(uint32_t control, uint32_t arg)
+{
+    return EFM32_LEUART_Control(control, arg, &LEUART1_Resources);
+}
+
+static ARM_USART_STATUS LEUART1_GetStatus(void)
+{
+    return EFM32_LEUART_GetStatus(&LEUART1_Resources);
+}
+
+static int32_t LEUART1_SetModemControl(ARM_USART_MODEM_CONTROL control)
+{
+    return EFM32_LEUART_SetModemControl(control, &LEUART1_Resources);
+}
+
+static ARM_USART_MODEM_STATUS LEUART1_GetModemStatus(void)
+{
+    return EFM32_LEUART_GetModemStatus(&LEUART1_Resources);
+}
+
+void LEUART1_IRQHandler(void)
+{
+    uint32_t flags;
+    flags = LEUART_IntGet(LEUART1);
+
+    if (flags & LEUART_IF_TXC) {
+        LEUART_TX_IRQHandler(&LEUART1_Resources);
+    } else if (flags & LEUART_IF_RXDATAV) {
+        LEUART_RX_IRQHandler(&LEUART1_Resources);
+    }
+}
+#endif
+
+#ifdef USART0
 ARM_DRIVER_USART Driver_USART0 = {
     ARM_GetVersion,
     USART0_GetCapabilities,
@@ -1136,24 +1562,8 @@ ARM_DRIVER_USART Driver_USART0 = {
     USART0_SetModemControl,
     USART0_GetModemStatus
 };
-
-ARM_DRIVER_USART Driver_LEUART0 = {
-    ARM_GetVersion,
-    LEUART0_GetCapabilities,
-    LEUART0_Initialize,
-    LEUART0_Uninitialize,
-    LEUART0_PowerControl,
-    LEUART0_Send,
-    LEUART0_Receive,
-    LEUART0_Transfer,
-    LEUART0_GetTxCount,
-    LEUART0_GetRxCount,
-    LEUART0_Control,
-    LEUART0_GetStatus,
-    LEUART0_SetModemControl,
-    LEUART0_GetModemStatus,
-};
-
+#endif
+#ifdef USART1
 ARM_DRIVER_USART Driver_USART1 = {
     ARM_GetVersion,
     USART1_GetCapabilities,
@@ -1170,3 +1580,76 @@ ARM_DRIVER_USART Driver_USART1 = {
     USART1_SetModemControl,
     USART1_GetModemStatus
 };
+#endif
+#ifdef USART2
+ARM_DRIVER_USART Driver_USART2 = {
+    ARM_GetVersion,
+    USART2_GetCapabilities,
+    USART2_Initialize,
+    USART2_Uninitialize,
+    USART2_PowerControl,
+    USART2_Send,
+    USART2_Receive,
+    USART2_Transfer,
+    USART2_GetTxCount,
+    USART2_GetRxCount,
+    USART2_Control,
+    USART2_GetStatus,
+    USART2_SetModemControl,
+    USART2_GetModemStatus
+};
+#endif
+#ifdef USART3
+ARM_DRIVER_USART Driver_USART3 = {
+    ARM_GetVersion,
+    USART3_GetCapabilities,
+    USART3_Initialize,
+    USART3_Uninitialize,
+    USART3_PowerControl,
+    USART3_Send,
+    USART3_Receive,
+    USART3_Transfer,
+    USART3_GetTxCount,
+    USART3_GetRxCount,
+    USART3_Control,
+    USART3_GetStatus,
+    USART3_SetModemControl,
+    USART3_GetModemStatus
+};
+#endif
+#ifdef LEUART0
+ARM_DRIVER_USART Driver_LEUART0 = {
+    ARM_GetVersion,
+    LEUART0_GetCapabilities,
+    LEUART0_Initialize,
+    LEUART0_Uninitialize,
+    LEUART0_PowerControl,
+    LEUART0_Send,
+    LEUART0_Receive,
+    LEUART0_Transfer,
+    LEUART0_GetTxCount,
+    LEUART0_GetRxCount,
+    LEUART0_Control,
+    LEUART0_GetStatus,
+    LEUART0_SetModemControl,
+    LEUART0_GetModemStatus,
+};
+#endif
+#ifdef LEUART1
+ARM_DRIVER_USART Driver_LEUART1 = {
+    ARM_GetVersion,
+    LEUART1_GetCapabilities,
+    LEUART1_Initialize,
+    LEUART1_Uninitialize,
+    LEUART1_PowerControl,
+    LEUART1_Send,
+    LEUART1_Receive,
+    LEUART1_Transfer,
+    LEUART1_GetTxCount,
+    LEUART1_GetRxCount,
+    LEUART1_Control,
+    LEUART1_GetStatus,
+    LEUART1_SetModemControl,
+    LEUART1_GetModemStatus,
+};
+#endif
