@@ -18,8 +18,18 @@
  * Project:   CMSIS Driver implementation for STM32 devices
  *
  * This library manages USARTs for STM32 devices.
- * User shoul configure structs USART1_Resources, USART2_Resources, etc to
+ * User should configure structs USART1_Resources, USART2_Resources, etc to
  * their routing and capabilities.
+ *
+ * Currently implemented:
+ * - Implemented non-blocking mode for Send, Receive functions
+ * - Implemented ARM_USART_GetModemStatus function
+ *
+ * To be implemented:
+ * TODO: Implement transfer function
+ * TODO: Implement the use of DMA for Send, Receive and Transfer functions.
+ * TODO: Implement ARM_USART_GetStatus function.
+ * TODO: Implement ARM_USART_SetModemControl function
  *
  */
 
@@ -36,7 +46,7 @@ static const ARM_DRIVER_VERSION DriverVersion = {
 };
 
 typedef struct {
-	GPIO_TypeDef* port;
+    GPIO_TypeDef *port;
     GPIO_InitTypeDef pin;
 } STM32_PIN;
 
@@ -46,8 +56,9 @@ typedef struct {
     UART_HandleTypeDef instance;
     STM32_PIN TxPin;
     STM32_PIN RxPin;
-    uint32_t TxBytes;
-    uint32_t RxBytes;
+    ARM_USART_STATUS status;
+    ARM_USART_MODEM_STATUS modem_status;
+    ARM_USART_SignalEvent_t cb_event;
 } STM32_USART_RESOURCES;
 
 /* Driver Capabilities */
@@ -78,10 +89,13 @@ static STM32_USART_RESOURCES USART2_Resources = {
      0
      /* Reserved (must be zero) */
      },
-	 {.Instance = USART2,  .Init.WordLength = UART_WORDLENGTH_8B, .Init.StopBits = UART_STOPBITS_1, .Init.Parity = UART_PARITY_NONE, .Init.HwFlowCtl = UART_HWCONTROL_NONE},
-	 { GPIOD, {.Pin = GPIO_PIN_5, .Mode = GPIO_MODE_AF_PP, .Pull = GPIO_NOPULL, .Speed = GPIO_SPEED_FREQ_VERY_HIGH, .Alternate = GPIO_AF7_USART2} }, /* Tx Pin */
-	 { GPIOD, {.Pin = GPIO_PIN_6, .Mode = GPIO_MODE_AF_PP, .Pull = GPIO_NOPULL, .Speed = GPIO_SPEED_FREQ_VERY_HIGH, .Alternate = GPIO_AF7_USART2} }, /* Rx Pin */
-	0, 0,
+    {.Instance = USART2,.Init.WordLength = UART_WORDLENGTH_8B,.Init.StopBits = UART_STOPBITS_1,.Init.Parity =
+     UART_PARITY_NONE,.Init.HwFlowCtl = UART_HWCONTROL_NONE},
+    {GPIOD, {.Pin = GPIO_PIN_5,.Mode = GPIO_MODE_AF_PP,.Pull = GPIO_NOPULL,.Speed = GPIO_SPEED_FREQ_VERY_HIGH,.Alternate = GPIO_AF7_USART2}},   /* Tx Pin */
+    {GPIOD, {.Pin = GPIO_PIN_6,.Mode = GPIO_MODE_AF_PP,.Pull = GPIO_NOPULL,.Speed = GPIO_SPEED_FREQ_VERY_HIGH,.Alternate = GPIO_AF7_USART2}},   /* Rx Pin */
+    {0},
+    {0},
+    NULL
 };
 
 static STM32_USART_RESOURCES UART5_Resources = {
@@ -110,115 +124,124 @@ static STM32_USART_RESOURCES UART5_Resources = {
      0
      /* Reserved (must be zero) */
      },
-	 {.Instance = UART5, .Init.WordLength = UART_WORDLENGTH_8B, .Init.StopBits = UART_STOPBITS_1, .Init.Parity = UART_PARITY_NONE, .Init.HwFlowCtl = UART_HWCONTROL_NONE},
-	 { GPIOC, {.Pin = GPIO_PIN_12, .Mode = GPIO_MODE_AF_PP, .Pull = GPIO_NOPULL, .Speed = GPIO_SPEED_FREQ_VERY_HIGH, .Alternate = GPIO_AF8_UART5} }, /* Tx Pin */
-	 { GPIOD, {.Pin = GPIO_PIN_2 , .Mode = GPIO_MODE_AF_PP, .Pull = GPIO_NOPULL, .Speed = GPIO_SPEED_FREQ_VERY_HIGH, .Alternate = GPIO_AF8_UART5} }, /* Rx Pin */
-	0, 0,
+    {.Instance = UART5,.Init.WordLength = UART_WORDLENGTH_8B,.Init.StopBits = UART_STOPBITS_1,.Init.Parity =
+     UART_PARITY_NONE,.Init.HwFlowCtl = UART_HWCONTROL_NONE},
+    {GPIOC, {.Pin = GPIO_PIN_12,.Mode = GPIO_MODE_AF_PP,.Pull = GPIO_NOPULL,.Speed = GPIO_SPEED_FREQ_VERY_HIGH,.Alternate = GPIO_AF8_UART5}},   /* Tx Pin */
+    {GPIOD, {.Pin = GPIO_PIN_2,.Mode = GPIO_MODE_AF_PP,.Pull = GPIO_NOPULL,.Speed = GPIO_SPEED_FREQ_VERY_HIGH,.Alternate = GPIO_AF8_UART5}},    /* Rx Pin */
+    {0},
+    {0},
+    NULL
 };
 
 // STM32 functions
-static int32_t STM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event,
-                                      STM32_USART_RESOURCES * usart)
+static int32_t STM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event, STM32_USART_RESOURCES * usart)
 {
-    usart->TxBytes = 0;
-    usart->RxBytes = 0;
-
 #ifdef USART1
     if (usart->instance.Instance == USART1) {
-    	__HAL_RCC_USART1_CLK_ENABLE();
+        __HAL_RCC_USART1_CLK_ENABLE();
+        HAL_NVIC_EnableIRQ(USART1_IRQn);
     }
 #endif
 #ifdef USART2
     if (usart->instance.Instance == USART2) {
-    	__HAL_RCC_USART2_CLK_ENABLE();
+        __HAL_RCC_USART2_CLK_ENABLE();
+        HAL_NVIC_EnableIRQ(USART2_IRQn);
     }
 #endif
 #ifdef USART3
     if (usart->instance.Instance == USART3) {
-    	__HAL_RCC_USART3_CLK_ENABLE();
+        __HAL_RCC_USART3_CLK_ENABLE();
+        HAL_NVIC_EnableIRQ(USART3_IRQn);
     }
 #endif
 #ifdef USART4
     if (usart->instance.Instance == USART4) {
-    	__HAL_RCC_USART4_CLK_ENABLE();
+        __HAL_RCC_USART4_CLK_ENABLE();
     }
 #endif
 #ifdef USART5
     if (usart->instance.Instance == USART5) {
-    	__HAL_RCC_USART5_CLK_ENABLE();
+        __HAL_RCC_USART5_CLK_ENABLE();
     }
 #endif
 #ifdef USART6
     if (usart->instance.Instance == USART6) {
-    	__HAL_RCC_USART6_CLK_ENABLE();
+        __HAL_RCC_USART6_CLK_ENABLE();
+        HAL_NVIC_EnableIRQ(USART6_IRQn);
     }
 #endif
 #ifdef UART1
     if (usart->instance.Instance == UART1) {
-    	__HAL_RCC_UART1_CLK_ENABLE();
+        __HAL_RCC_UART1_CLK_ENABLE();
     }
 #endif
 #ifdef UART2
     if (usart->instance.Instance == UART2) {
-    	__HAL_RCC_UART2_CLK_ENABLE();
+        __HAL_RCC_UART2_CLK_ENABLE();
     }
 #endif
 #ifdef UART3
     if (usart->instance.Instance == UART3) {
-    	__HAL_RCC_UART3_CLK_ENABLE();
+        __HAL_RCC_UART3_CLK_ENABLE();
     }
 #endif
 #ifdef UART4
     if (usart->instance.Instance == UART4) {
-    	__HAL_RCC_UART4_CLK_ENABLE();
+        __HAL_RCC_UART4_CLK_ENABLE();
+        HAL_NVIC_EnableIRQ(UART4_IRQn);
     }
 #endif
 #ifdef UART5
     if (usart->instance.Instance == UART5) {
-    	__HAL_RCC_UART5_CLK_ENABLE();
+        __HAL_RCC_UART5_CLK_ENABLE();
+        HAL_NVIC_EnableIRQ(UART5_IRQn);
     }
 #endif
 
 #ifdef GPIOA
-    if ( (usart->TxPin.port == GPIOA) || (usart->RxPin.port == GPIOA) ) {
-        	__HAL_RCC_GPIOA_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOA) || (usart->RxPin.port == GPIOA)) {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
     }
 #endif
 #ifdef GPIOB
-    if ( (usart->TxPin.port == GPIOB) || (usart->RxPin.port == GPIOB) ) {
-        	__HAL_RCC_GPIOB_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOB) || (usart->RxPin.port == GPIOB)) {
+        __HAL_RCC_GPIOB_CLK_ENABLE();
     }
 #endif
 #ifdef GPIOC
-    if ( (usart->TxPin.port == GPIOC) || (usart->RxPin.port == GPIOC) ) {
-        	__HAL_RCC_GPIOC_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOC) || (usart->RxPin.port == GPIOC)) {
+        __HAL_RCC_GPIOC_CLK_ENABLE();
     }
 #endif
 #ifdef GPIOD
-    if ( (usart->TxPin.port == GPIOD) || (usart->RxPin.port == GPIOD) ) {
-    	__HAL_RCC_GPIOD_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOD) || (usart->RxPin.port == GPIOD)) {
+        __HAL_RCC_GPIOD_CLK_ENABLE();
     }
 #endif
 #ifdef GPIOE
-    if ( (usart->TxPin.port == GPIOE) || (usart->RxPin.port == GPIOE) ) {
-        	__HAL_RCC_GPIOE_CLK_ENABLE();
-	}
+    if ((usart->TxPin.port == GPIOE) || (usart->RxPin.port == GPIOE)) {
+        __HAL_RCC_GPIOE_CLK_ENABLE();
+    }
 #endif
 #ifdef GPIOF
-    if ( (usart->TxPin.port == GPIOF) || (usart->RxPin.port == GPIOF) ) {
-        	__HAL_RCC_GPIOF_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOF) || (usart->RxPin.port == GPIOF)) {
+        __HAL_RCC_GPIOF_CLK_ENABLE();
     }
 #endif
 #ifdef GPIOG
-    if ( (usart->TxPin.port == GPIOG) || (usart->RxPin.port == GPIOG) ) {
-        	__HAL_RCC_GPIOG_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOG) || (usart->RxPin.port == GPIOG)) {
+        __HAL_RCC_GPIOG_CLK_ENABLE();
     }
 #endif
 #ifdef GPIOH
-    if ( (usart->TxPin.port == GPIOH) || (usart->RxPin.port == GPIOH) ) {
-        	__HAL_RCC_GPIOH_CLK_ENABLE();
+    if ((usart->TxPin.port == GPIOH) || (usart->RxPin.port == GPIOH)) {
+        __HAL_RCC_GPIOH_CLK_ENABLE();
     }
 #endif
+
+    if (cb_event != NULL) {
+        usart->cb_event = cb_event;
+    }
 
     HAL_GPIO_Init(usart->TxPin.port, &usart->TxPin.pin);
     HAL_GPIO_Init(usart->RxPin.port, &usart->RxPin.pin);
@@ -226,14 +249,13 @@ static int32_t STM32_USART_Initialize(ARM_USART_SignalEvent_t cb_event,
     return ARM_DRIVER_OK;
 }
 
-static int32_t STM32_USART_Uninitialize(STM32_USART_RESOURCES *usart)
+static int32_t STM32_USART_Uninitialize(STM32_USART_RESOURCES * usart)
 {
-	HAL_UART_DeInit(&usart->instance);
+    HAL_UART_DeInit(&usart->instance);
     return ARM_DRIVER_OK;
 }
 
-static int32_t STM32_USART_PowerControl(ARM_POWER_STATE state,
-                                        STM32_USART_RESOURCES const *usart)
+static int32_t STM32_USART_PowerControl(ARM_POWER_STATE state, STM32_USART_RESOURCES const *usart)
 {
     switch (state) {
     case ARM_POWER_OFF:
@@ -247,80 +269,79 @@ static int32_t STM32_USART_PowerControl(ARM_POWER_STATE state,
     return ARM_DRIVER_OK;
 }
 
-static int32_t STM32_USART_Send(const void *data, uint32_t num,
-                                STM32_USART_RESOURCES * usart)
+static int32_t STM32_USART_Send(const void *data, uint32_t num, STM32_USART_RESOURCES * usart)
 {
-	void * aux = (void *) data;
+    HAL_StatusTypeDef ret;
+
     if ((data == NULL) || (num == 0U)) {
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    usart->TxBytes += num;
+    ret = HAL_UART_Transmit_IT(&usart->instance, (uint8_t *) data, num);
 
-    if (HAL_UART_Transmit (&usart->instance, aux, num, 1000) != HAL_OK) {
-    	return ARM_DRIVER_ERROR;
+    if (ret == HAL_OK) {
+        return ARM_DRIVER_OK;
+    } else if (ret == HAL_BUSY) {
+        return ARM_DRIVER_ERROR_BUSY;
+    } else {
+        return ARM_DRIVER_ERROR;
     }
 
     return ARM_DRIVER_OK;
 }
 
-static int32_t STM32_USART_Receive(void *data, uint32_t num,
-                                   STM32_USART_RESOURCES * usart)
+static int32_t STM32_USART_Receive(void *data, uint32_t num, STM32_USART_RESOURCES * usart)
 {
     if ((data == NULL) || (num == 0U)) {
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    usart->RxBytes += num;
-
-    HAL_UART_Receive (&usart->instance, data, num, 1000);
+    HAL_UART_Receive_IT(&usart->instance, (uint8_t *) data, num);
 
     return ARM_DRIVER_OK;
 }
 
 static int32_t STM32_USART_Transfer(const void *data_out, void *data_in,
-                                    uint32_t num,
-                                    STM32_USART_RESOURCES const *usart)
+                                    uint32_t num, STM32_USART_RESOURCES const *usart)
 {
     return ARM_DRIVER_ERROR_UNSUPPORTED;
 }
 
 static uint32_t STM32_USART_GetTxCount(STM32_USART_RESOURCES const *usart)
 {
-    return usart->TxBytes;
+    return usart->instance.TxXferCount;
 }
 
 static uint32_t STM32_USART_GetRxCount(STM32_USART_RESOURCES const *usart)
 {
-    return usart->RxBytes;
+    return usart->instance.RxXferCount;
 }
 
-static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
-                                   STM32_USART_RESOURCES *usart)
+static int32_t STM32_USART_Control(uint32_t control, uint32_t arg, STM32_USART_RESOURCES * usart)
 {
     switch (control & ARM_USART_CONTROL_Msk) {
     case ARM_USART_MODE_ASYNCHRONOUS:
-    	usart->instance.Init.BaudRate = arg;
+        usart->instance.Init.BaudRate = arg;
         break;
     case ARM_USART_CONTROL_TX:
-		if (arg == 1) {
-			usart->instance.Init.Mode |= UART_MODE_TX;
-		} else {
-			usart->instance.Init.Mode &= ~UART_MODE_TX;
-		}
-		HAL_UART_Init(&usart->instance);
-		return ARM_DRIVER_OK;
-		break;
+        if (arg == 1) {
+            usart->instance.Init.Mode |= UART_MODE_TX;
+        } else {
+            usart->instance.Init.Mode &= ~UART_MODE_TX;
+        }
+        HAL_UART_Init(&usart->instance);
+        return ARM_DRIVER_OK;
+        break;
 
-	case ARM_USART_CONTROL_RX:
-		if (arg == 1) {
-			usart->instance.Init.Mode |= UART_MODE_RX;
-		} else {
-			usart->instance.Init.Mode &= ~UART_MODE_RX;
-		}
-		HAL_UART_Init(&usart->instance);
-		return ARM_DRIVER_OK;
-		break;
+    case ARM_USART_CONTROL_RX:
+        if (arg == 1) {
+            usart->instance.Init.Mode |= UART_MODE_RX;
+        } else {
+            usart->instance.Init.Mode &= ~UART_MODE_RX;
+        }
+        HAL_UART_Init(&usart->instance);
+        return ARM_DRIVER_OK;
+        break;
 
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -332,10 +353,10 @@ static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
     case ARM_USART_DATA_BITS_7:
         return ARM_DRIVER_ERROR_PARAMETER;
     case ARM_USART_DATA_BITS_8:
-    	usart->instance.Init.WordLength = UART_WORDLENGTH_8B;
+        usart->instance.Init.WordLength = UART_WORDLENGTH_8B;
         break;
     case ARM_USART_DATA_BITS_9:
-    	usart->instance.Init.WordLength = UART_WORDLENGTH_9B;
+        usart->instance.Init.WordLength = UART_WORDLENGTH_9B;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -343,13 +364,13 @@ static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
 
     switch (control & ARM_USART_PARITY_Msk) {
     case ARM_USART_PARITY_NONE:
-    	usart->instance.Init.Parity = UART_PARITY_NONE;
+        usart->instance.Init.Parity = UART_PARITY_NONE;
         break;
     case ARM_USART_PARITY_ODD:
-    	usart->instance.Init.Parity = UART_PARITY_ODD;
+        usart->instance.Init.Parity = UART_PARITY_ODD;
         break;
     case ARM_USART_PARITY_EVEN:
-    	usart->instance.Init.Parity = UART_PARITY_EVEN;
+        usart->instance.Init.Parity = UART_PARITY_EVEN;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -357,10 +378,10 @@ static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
 
     switch (control & ARM_USART_STOP_BITS_Msk) {
     case ARM_USART_STOP_BITS_1:
-    	usart->instance.Init.StopBits = UART_STOPBITS_1;
+        usart->instance.Init.StopBits = UART_STOPBITS_1;
         break;
     case ARM_USART_STOP_BITS_2:
-    	usart->instance.Init.StopBits = UART_STOPBITS_2;
+        usart->instance.Init.StopBits = UART_STOPBITS_2;
         break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -368,17 +389,17 @@ static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
 
     switch (control & ARM_USART_FLOW_CONTROL_Msk) {
     case ARM_USART_FLOW_CONTROL_NONE:
-    	usart->instance.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    	break;
+        usart->instance.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+        break;
     case ARM_USART_FLOW_CONTROL_RTS:
-    	usart->instance.Init.HwFlowCtl = UART_HWCONTROL_RTS;
-    	break;
+        usart->instance.Init.HwFlowCtl = UART_HWCONTROL_RTS;
+        break;
     case ARM_USART_FLOW_CONTROL_CTS:
-    	usart->instance.Init.HwFlowCtl = UART_HWCONTROL_CTS;
-    	break;
+        usart->instance.Init.HwFlowCtl = UART_HWCONTROL_CTS;
+        break;
     case ARM_USART_FLOW_CONTROL_RTS_CTS:
-    	usart->instance.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
-    	break;
+        usart->instance.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+        break;
     default:
         return ARM_DRIVER_ERROR_PARAMETER;
     }
@@ -386,7 +407,7 @@ static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
     usart->instance.Init.OverSampling = UART_OVERSAMPLING_16;
 
     if (HAL_UART_Init(&usart->instance) != HAL_OK) {
-    	return ARM_DRIVER_ERROR;
+        return ARM_DRIVER_ERROR;
     }
 
     return ARM_DRIVER_OK;
@@ -395,28 +416,18 @@ static int32_t STM32_USART_Control(uint32_t control, uint32_t arg,
 static ARM_USART_STATUS STM32_USART_GetStatus(STM32_USART_RESOURCES const
                                               *usart)
 {
-    ARM_USART_STATUS status = {
-        0
-    };
-    return status;
+    return usart->status;
 }
 
-
-static int32_t STM32_USART_SetModemControl(ARM_USART_MODEM_CONTROL control,
-                                           STM32_USART_RESOURCES const *usart)
+static int32_t STM32_USART_SetModemControl(ARM_USART_MODEM_CONTROL control, STM32_USART_RESOURCES const *usart)
 {
     return 0;
 }
 
-static ARM_USART_MODEM_STATUS STM32_USART_GetModemStatus(STM32_USART_RESOURCES
-                                                         const *usart)
+static ARM_USART_MODEM_STATUS STM32_USART_GetModemStatus(STM32_USART_RESOURCES const *usart)
 {
-    ARM_USART_MODEM_STATUS status = {
-        0
-    };
-    return status;
+    return usart->modem_status;
 }
-
 
 //
 //   Functions
@@ -426,8 +437,6 @@ static ARM_DRIVER_VERSION ARM_GetVersion(void)
 {
     return DriverVersion;
 }
-
-
 
 // USART2
 static ARM_USART_CAPABILITIES USART2_GetCapabilities(void)
@@ -460,8 +469,7 @@ static int32_t USART2_Receive(void *data, uint32_t num)
     return STM32_USART_Receive(data, num, &USART2_Resources);
 }
 
-static int32_t USART2_Transfer(const void *data_out, void *data_in,
-                               uint32_t num)
+static int32_t USART2_Transfer(const void *data_out, void *data_in, uint32_t num)
 {
     return STM32_USART_Transfer(data_out, data_in, num, &USART2_Resources);
 }
@@ -496,6 +504,10 @@ static ARM_USART_MODEM_STATUS USART2_GetModemStatus(void)
     return STM32_USART_GetModemStatus(&USART2_Resources);
 }
 
+void USART2_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&USART2_Resources.instance);
+}
 
 // USART6
 static ARM_USART_CAPABILITIES UART5_GetCapabilities(void)
@@ -528,8 +540,7 @@ static int32_t UART5_Receive(void *data, uint32_t num)
     return STM32_USART_Receive(data, num, &UART5_Resources);
 }
 
-static int32_t UART5_Transfer(const void *data_out, void *data_in,
-                               uint32_t num)
+static int32_t UART5_Transfer(const void *data_out, void *data_in, uint32_t num)
 {
     return STM32_USART_Transfer(data_out, data_in, num, &UART5_Resources);
 }
@@ -564,7 +575,44 @@ static ARM_USART_MODEM_STATUS UART5_GetModemStatus(void)
     return STM32_USART_GetModemStatus(&UART5_Resources);
 }
 
+void UART5_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&UART5_Resources.instance);
+}
 
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef * UartHandle)
+{
+    uint32_t event = 0;
+
+    event = ARM_USART_EVENT_TX_COMPLETE;
+
+    if (UartHandle->Instance == USART2_Resources.instance.Instance) {
+        if (USART2_Resources.cb_event != NULL) {
+            USART2_Resources.cb_event(event);
+        }
+    } else if (UartHandle->Instance == UART5_Resources.instance.Instance) {
+        if (UART5_Resources.cb_event != NULL) {
+            UART5_Resources.cb_event(event);
+        }
+    }
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef * UartHandle)
+{
+    uint32_t event = 0;
+
+    event = ARM_USART_EVENT_RECEIVE_COMPLETE;
+
+    if (UartHandle->Instance == USART2_Resources.instance.Instance) {
+        if (USART2_Resources.cb_event != NULL) {
+            USART2_Resources.cb_event(event);
+        }
+    } else if (UartHandle->Instance == UART5_Resources.instance.Instance) {
+        if (UART5_Resources.cb_event != NULL) {
+            UART5_Resources.cb_event(event);
+        }
+    }
+}
 
 ARM_DRIVER_USART Driver_USART2 = {
     ARM_GetVersion,
@@ -599,3 +647,4 @@ ARM_DRIVER_USART Driver_UART5 = {
     UART5_SetModemControl,
     UART5_GetModemStatus
 };
+
