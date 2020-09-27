@@ -23,6 +23,11 @@ In eclipse based IDEs (Simplicity Studio and STM32CubeIDE) a virtual folder can 
 
 Documentation about the API is here: https://arm-software.github.io/CMSIS_5/Driver/html/index.html
 
+### Source Code
+
+It is provided c files for each driver and its test. Headers must be obtained from oficial repositories (https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/Driver).
+
+Indentation used: indent -linux -l120 -i4 -nut <file.c>
 ## Modules implemented
 
 * Driver_USART
