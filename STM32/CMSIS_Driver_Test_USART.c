@@ -53,7 +53,7 @@ void usart5_cb(uint32_t event)
     }
 }
 
-                                                                                                                                                                                                                                       /***************************************************************************//**
+                                                                                                                                                                                                                                                                                                                    /***************************************************************************//**
  * @brief  Main function
  ******************************************************************************/
 int main(void)
@@ -86,9 +86,10 @@ int main(void)
     Driver_UART5.Control(ARM_USART_CONTROL_TX, 1);
     Driver_UART5.Control(ARM_USART_CONTROL_RX, 1);
 
-    USARTdrv->Send("Hello CMSIS\n", 12);
-    Driver_UART5.Send("Hello CMSIS UART5\n", 18);
+    USARTdrv->Send("\nHello CMSIS\n", 13);
+    Driver_UART5.Send("\nHello CMSIS UART5\n", 19);
 
+    USARTdrv->Send("Do echo\n", 8);
     Driver_UART5.Send("Do echo\n", 8);
 
     while (1) {
