@@ -31,9 +31,9 @@ Indentation used: indent -linux -l120 -i4 -nut <file.c>
 ## Modules implemented
 
 * Driver_USART
+* Driver_I2C
 
 ## Modules to implement
-* Driver_I2C
 * Driver_SPI
 * Driver_Flash.h
 * Driver_Storage.h
