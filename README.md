@@ -38,3 +38,6 @@ Indentation used: indent -linux -l120 -i4 -nut <file.c>
 * Driver_Flash.h
 * Driver_Storage.h
 * ...
+
+## Examples
+I implemented a MODBUS client (Examples/modbus_client.c) to demonstrate how to use the CMSIS UART driver. This MODBUS client is independent of the vendor, and the examples using the client for each vendor is in the corresponding directory (EFM32/modbus_efm32.c, STM32/modbus_stm32.c)
