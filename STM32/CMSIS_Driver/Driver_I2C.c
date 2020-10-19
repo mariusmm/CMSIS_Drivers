@@ -181,15 +181,21 @@ static int32_t STM_I2C_PowerControl(ARM_POWER_STATE state, STM32_I2C_RESOURCES *
 static int32_t STM_I2C_MasterTransmit(uint32_t addr, const uint8_t * data, uint32_t num, bool xfer_pending,
                                       STM32_I2C_RESOURCES * i2c)
 {
-    HAL_I2C_Master_Transmit_IT(&i2c->instance, addr, (uint8_t *) data, num);
-    return ARM_DRIVER_OK;
+	if (HAL_I2C_Master_Transmit_IT(&i2c->instance, addr, (uint8_t*) data, num) == HAL_OK) {
+		return ARM_DRIVER_OK;
+	} else {
+		return ARM_DRIVER_ERROR;
+	}
 }
 
 static int32_t STM_I2C_MasterReceive(uint32_t addr, uint8_t * data, uint32_t num, bool xfer_pending,
                                      STM32_I2C_RESOURCES * i2c)
 {
-    HAL_I2C_Master_Receive_IT(&i2c->instance, addr, data, num);
-    return ARM_DRIVER_OK;
+	if (HAL_I2C_Master_Receive_IT(&i2c->instance, addr, data, num) == HAL_OK) {
+		return ARM_DRIVER_OK;
+	} else {
+		return ARM_DRIVER_ERROR;
+	}
 }
 
 static int32_t STM_I2C_SlaveTransmit(const uint8_t * data, uint32_t num, STM32_I2C_RESOURCES * i2c)
@@ -245,17 +251,21 @@ static ARM_I2C_STATUS STM_I2C_GetStatus(STM32_I2C_RESOURCES * i2c)
 {
 
     HAL_I2C_StateTypeDef i2c_status;
-    if (i2c == NULL) {
-        ARM_I2C_STATUS ret = { 0 };
-        return ret;
-    }
+
+//    if (i2c == NULL) {
+//        ARM_I2C_STATUS ret = { 0 };
+//        return ret;
+//    }
     i2c_status = HAL_I2C_GetState(&i2c->instance);
 
     if (i2c_status == HAL_I2C_STATE_READY) {
         i2c->status.busy = false;
-    } else if (i2c_status & HAL_I2C_STATE_BUSY) {
+    } else {
         i2c->status.busy = true;
-    } else if (i2c_status & HAL_I2C_STATE_ERROR) {
+    }
+
+    if (i2c_status == HAL_I2C_STATE_ERROR) {
+    	uint32_t i2c_error = HAL_I2C_GetError(&i2c->instance);
         i2c->status.bus_error = true;
     }
 
