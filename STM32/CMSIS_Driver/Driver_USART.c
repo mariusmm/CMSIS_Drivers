@@ -890,9 +890,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef * UartHandle)
     event = ARM_USART_EVENT_TX_COMPLETE;
 
 #ifdef USART1
-    if (UartHandle->Instance == USART2_Resources.instance.Instance) {
-        if (USART2_Resources.cb_event != NULL) {
-            USART2_Resources.cb_event(event);
+    if (UartHandle->Instance == USART1_Resources.instance.Instance) {
+        if (USART1_Resources.cb_event != NULL) {
+            USART1_Resources.cb_event(event);
         }
     }
 #endif
